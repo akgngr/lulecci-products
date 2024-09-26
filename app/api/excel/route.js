@@ -1,10 +1,10 @@
 import client from '@/utils/shopify';
+import * as XLSX from 'xlsx'; // xlsx kütüphanesini içe aktar
 export const dynamic = 'force-static';
-import { convertToCSV } from '@/utils/csv';
 
 export async function GET(req) {
   try {
-    const response = await client.get('products',  {
+    const response = await client.get('products', {
       headers: {
         'Accept-Language': 'de', // Dili burada da belirtebilirsiniz
       },
@@ -12,8 +12,8 @@ export async function GET(req) {
     if (response.ok) {
       const body = await response.json();
       // Ürünleri ve varyantları dönüştür
-        const transformedProducts = body?.products?.flatMap(product => {
-          if (product.status === 'archived') {
+      const transformedProducts = body?.products?.flatMap(product => {
+        if (product.status === 'archived') {
           return []; // Eğer ürün "archived" ise boş dizi döndür
         }
         // Ürün varyantlarını birer ürün gibi göster
@@ -33,14 +33,19 @@ export async function GET(req) {
         }));
       });
 
-      // CSV formatına dönüştür
-      const csvData = convertToCSV(transformedProducts);
+      // Excel dosyası oluştur
+      const worksheet = XLSX.utils.json_to_sheet(transformedProducts);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
 
-      // CSV yanıtı döndür
-      return new Response(csvData, {
+      // Excel dosyasını binary formatında oluştur
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+      // Excel yanıtı döndür
+      return new Response(excelBuffer, {
         headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="lulecci_home_products.csv"', // İndirme için dosya adı
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="products.xlsx"', // İndirme için dosya adı
         },
       });
     } else {

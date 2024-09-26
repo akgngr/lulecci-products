@@ -1,10 +1,9 @@
 import client from '@/utils/shopify';
 export const dynamic = 'force-static';
-import { convertToCSV } from '@/utils/csv';
 
 export async function GET(req) {
   try {
-    const response = await client.get('products',  {
+    const response = await client.get('products', {
       headers: {
         'Accept-Language': 'de', // Dili burada da belirtebilirsiniz
       },
@@ -12,8 +11,8 @@ export async function GET(req) {
     if (response.ok) {
       const body = await response.json();
       // Ürünleri ve varyantları dönüştür
-        const transformedProducts = body?.products?.flatMap(product => {
-          if (product.status === 'archived') {
+      const transformedProducts = body?.products?.flatMap(product => {
+        if (product.status === 'archived') {
           return []; // Eğer ürün "archived" ise boş dizi döndür
         }
         // Ürün varyantlarını birer ürün gibi göster
@@ -29,18 +28,15 @@ export async function GET(req) {
           paymentCosts_paypal: 0.00, // Ödeme maliyetleri (örnek)
           deliveryCosts_dhl: 0.00, // Teslimat maliyetleri (örnek)
           deliveryTime: 'Delivery time: 6-8 weeks', // Teslimat süresi (örnek)
-          imageUrls: product.images.map(image => image.src) || '', // İlk resim URL'si
+          imageUrls: product.images.map(image => image.src) || [], // İlk resim URL'si
         }));
       });
 
-      // CSV formatına dönüştür
-      const csvData = convertToCSV(transformedProducts);
-
-      // CSV yanıtı döndür
-      return new Response(csvData, {
+      // JSON yanıtı döndür
+      return new Response(JSON.stringify(transformedProducts), {
         headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="lulecci_home_products.csv"', // İndirme için dosya adı
+          'Content-Type': 'application/json', // JSON içeriği
+          'Content-Disposition': 'attachment; filename="lulecci_home_products.json"', // İndirme için dosya adı
         },
       });
     } else {
