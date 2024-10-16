@@ -1,5 +1,5 @@
-import { apiClient } from "@/utils/shopify"
-import { convertToCSV } from "@/utils/csv"
+import apiClient from "@/utils/shopify"
+import convertToCSV from "@/utils/csv"
 export async function GET(req, res) {
   let allProducts = []
   let hasNextPage = true
