@@ -1,4 +1,4 @@
-export const convertToCSV = (data) => {
+const convertToCSV = (data) => {
   const escapeValue = (value) => {
     if (typeof value === "string" && value.includes("$")) {
       return `"${value.replace(/"/g, '""')}"` // Eğer veride $ varsa yine escape ederiz
@@ -10,3 +10,4 @@ export const convertToCSV = (data) => {
   const rows = data.map((row) => Object.values(row).map(escapeValue).join("$")) // Satırları al
   return [header, ...rows].join("\n") // Başlık ve satırları birleştir
 }
+export default convertToCSV
