@@ -1,5 +1,7 @@
 import apiClient from "@/utils/shopify"
 import convertToCSV from "@/utils/csv"
+import removeHtml from "@/utils/removeHtml"
+
 export async function GET(req, res) {
   let allProducts = []
   let hasNextPage = true
@@ -134,7 +136,7 @@ export async function GET(req, res) {
                 .pop()}&utm_source=idealo&utm_medium=idealo_listing&utm_campaign=idealo_campaign`,
               eans: variant.barcode,
               description: bodyHtmlTranslation
-                ? bodyHtmlTranslation.value
+                ? removeHtml(bodyHtmlTranslation.value)
                 : null,
               price: variant.price,
               paymentCosts_paypal: 0.0,
