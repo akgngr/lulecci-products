@@ -22,7 +22,7 @@ const convertToCSV = (data) => {
   const rows = data.map((row) => {
     // Resim linklerini virgül ile ayırıyoruz
     if (row.imageUrls && Array.isArray(row.imageUrls)) {
-      row.imageUrls = row.imageUrls.join(" ") // Resim linklerini virgülle ayırıyoruz
+      row.imageUrls = row.imageUrls.join("$") // Resim linklerini virgülle ayırıyoruz
     }
 
     return Object.values(row).map(escapeValue).join(",") // Satırları noktalı virgülle ayırıyoruz
