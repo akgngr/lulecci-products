@@ -1,35 +1,51 @@
 const convertToCSV = (data) => {
   const escapeValue = (value) => {
-    // Değer boşsa null döndür, aksi takdirde değeri işleme al
-    if (
-      value === null &&
-      value === undefined &&
-      value === "" &&
-      value === " "
-    ) {
-      return null
+    
+    if (typeof value === 'string') {
+    value = value.trim();
+    }
+    
+    if (value === null || value === undefined || value === "" || value === " ") {
+      return null;
     }
 
     if (typeof value === "string" && value.includes(",")) {
-      return `"${value.replace(/"/g, '""')}"` // Eğer veride , varsa yine escape ederiz
+      return `"${value.replace(/"/g, '""')}"`;
     }
-    return value
-  }
+    return value;
+  };
 
-  // Başlıkları virgül (",") ile ayır
-  const header = Object.keys(data[0]).map(escapeValue).join(",")
+  // Önce tüm olası resim sütunlarını belirle
+  const allPictureKeys = new Set();
+  data.forEach(row => {
+    Object.keys(row)
+      .filter(key => key.startsWith("picture_"))
+      .forEach(key => allPictureKeys.add(key));
+  });
 
-  const rows = data.map((row) => {
-    // Resim linklerini virgül ile ayırıyoruz
-    if (row.imageUrls && Array.isArray(row.imageUrls)) {
-      row.imageUrls = row.imageUrls.join("$") // Resim linklerini virgülle ayırıyoruz
-    }
+  const processRow = (row) => {
+    const newRow = { ...row };
+    
+    // Her resim sütunu için değeri kopyala
+    Array.from(allPictureKeys).forEach(pictureKey => {
+      newRow[pictureKey] = row[pictureKey] || null;
+    });
 
-    return Object.values(row).map(escapeValue).join(",") // Satırları noktalı virgülle ayırıyoruz
-  })
+    return newRow;
+  };
 
-  // Başlıkları ve satırları ";" ile ayırarak birleştir
-  return [header, ...rows].join("\n")
-}
+  // Tüm satırları işle
+  const processedData = data.map(processRow);
+  
+  // Başlıkları oluştur
+  const header = Object.keys(processedData[0]).map(escapeValue).join(",");
+  
+  // Satırları oluştur
+  const rows = processedData.map(row => {
+    return Object.values(row).map(escapeValue).join(",");
+  });
 
-export default convertToCSV
+  return [header, ...rows].join("\n");
+};
+
+export default convertToCSV;

@@ -73,6 +73,9 @@ export async function GET(req, res) {
       // GraphQL isteğini yapıyoruz
       const { data, errors } = await apiClient.request(productQuery, {
         variables: variables,
+        headers: {
+          "Cache-Control": "no-store",
+        },
       })
 
       if (errors) {

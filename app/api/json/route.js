@@ -1,14 +1,14 @@
 import client from "@/utils/shopify"
 export const dynamic = "force-static"
 
-export async function GET(req) {
+export async function GET(req, res) {
   try {
     const response = await client.get("products", {
       params: {
         lang: "de",
       },
       headers: {
-        "Accept-Language": "de", // Dili burada da belirtebilirsiniz
+        "Cache-Control": "no-store",
       },
     })
     if (response.ok) {

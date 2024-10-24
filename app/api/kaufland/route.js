@@ -1,6 +1,7 @@
 import apiClient from "@/utils/shopify"
 import convertToCSV from "@/utils/csv"
 import removeHtml from "@/utils/removeHtml"
+export const dynamic = "force-static"
 
 export async function GET(req, res) {
   let allProducts = []
@@ -73,6 +74,9 @@ export async function GET(req, res) {
       // GraphQL isteğini yapıyoruz
       const { data, errors } = await apiClient.request(productQuery, {
         variables: variables,
+        headers: {
+          "Cache-Control": "no-store",
+        },
       })
 
       if (errors) {
@@ -89,6 +93,7 @@ export async function GET(req, res) {
         const filteredProducts = data.products.edges.flatMap((edge) => {
           const product = edge.node
 
+          // return product
           // Almanca çevirilere sahip ürünler
           const translations = product.translations
 
@@ -113,38 +118,45 @@ export async function GET(req, res) {
 
                 const translateonethreeDays =
                   onethreeDays === "(Delivery Time: 1-3 Days)"
-                    ? "(Lieferzeit: 1-3 Tage)"
+                    ? "Lieferzeit: 1-3 Tage"
                     : onethreeDays === "(Delivery Time: 6-8 Weeks)"
-                    ? "(Lieferzeit: 6-8 Wochen)"
+                    ? "Lieferzeit: 6-8 Wochen"
                     : null
 
                 return translateonethreeDays
               })
               .toString()
 
+            const mpn = variant.metafields.edges
+            .map((metafieldEdge) => {
+              const metafield = metafieldEdge.node;
+              return metafield.key === "mpn" ? metafield.value : null;
+            })
+            .filter(value => value !== null) 
+            .join(",") 
+            .trim() 
+            .replace(/^,|,$/g, ''); 
+
             return {
+              category: product.productType,
+              mpn: mpn,
+              bed_size: variant.title + " cm",
               sku: variant.sku,
-              brand: product.vendor,
+              manufacturer: "Sierra Bedding",
               title: titleTranslation
-                ? titleTranslation.value + " " + variant.title
+                ? titleTranslation.value + " Größe: " + variant.title + " cm"
                 : null,
-              categoryPath: product.productType,
-              url: `${process.env.NEXT_PUBLIC_STORE_DOMAIN}/products/${
-                product.handle
-              }?variant=${variant.id
-                .split("/")
-                .pop()}&utm_source=idealo&utm_medium=idealo_listing&utm_campaign=idealo_campaign`,
+              locale: "de-DE",
               eans: variant.barcode,
               description: bodyHtmlTranslation
                 ? removeHtml(bodyHtmlTranslation.value)
                 : null,
-              price: variant.price,
-              paymentCosts_paypal: 0.0,
-              deliveryCosts_dhl: 0.0,
+              list_price: variant.price,
               delivery_time,
-              imageUrls: product.images.edges.map(
-                (imageEdge) => imageEdge.node.originalSrc
-              ),
+              ...product.images.edges.reduce((acc, imageEdge, index) => {
+                acc[`picture_${index + 1}`] = imageEdge.node.originalSrc
+                return acc
+              }, {}),
             }
           })
         })
