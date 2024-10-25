@@ -105,6 +105,10 @@ export async function GET(req, res) {
             (trans) => trans.key === "body_html"
           )
 
+          const categoryPathTranslation = translations.find(
+            (trans) => trans.key === "product_type"
+          )
+
           // Varyantları işleme
           return product.variants.edges.map((variantEdge) => {
             const variant = variantEdge.node
@@ -138,7 +142,7 @@ export async function GET(req, res) {
             .replace(/^,|,$/g, ''); 
 
             return {
-              category: product.productType,
+              category: categoryPathTranslation ? categoryPathTranslation.value : null,
               mpn: mpn,
               bed_size: variant.title + " cm",
               sku: variant.sku,
