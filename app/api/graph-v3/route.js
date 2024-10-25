@@ -89,6 +89,7 @@ export async function GET(req, res) {
       }
 
       if (data && data.products) {
+        //return Response.json(data.products.edges)
         const filteredProducts = data.products.edges.flatMap((edge) => {
           const product = edge.node
 
@@ -101,6 +102,10 @@ export async function GET(req, res) {
           )
           const bodyHtmlTranslation = translations.find(
             (trans) => trans.key === "body_html"
+          )
+
+          const categoryPathTranslation = translations.find(
+            (trans) => trans.key === "product_type"
           )
 
           // Varyantları işleme
@@ -132,7 +137,7 @@ export async function GET(req, res) {
                 variant.title !== "Default Title"
                   ? titleTranslation.value + " " + variant.title
                   : titleTranslation.value,
-              categoryPath: product.productType,
+              categoryPath: categoryPathTranslation ? categoryPathTranslation.value: null,
               url: `${process.env.NEXT_PUBLIC_STORE_DOMAIN}/products/${
                 product.handle
               }?variant=${variant.id
@@ -177,10 +182,11 @@ export async function GET(req, res) {
     }
 
     const csvData = convertToCSV(allProducts)
-
+    const json = JSON.stringify(allProducts)
     // Tüm ürünler alındıktan sonra yanıt döndür
     return new Response(csvData, {
       headers: {
+        //"Content-Type": "application/json"
         "Content-Type": "text/csv",
         "Content-Disposition":
           'attachment; filename="lulecci_home_products.csv"',
