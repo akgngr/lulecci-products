@@ -132,16 +132,27 @@ export async function GET(req, res) {
               .toString()
 
             const mpn = variant.metafields.edges
-            .map((metafieldEdge) => {
+              .map((metafieldEdge) => {
+              
               const metafield = metafieldEdge.node;
-              return metafield.key === "mpn" ? metafield.value : null;
-            })
-            .filter(value => value !== null) 
+                
+              const meta = metafield.key === "mpn" ? metafield.value : null;
+                
+              if (typeof meta !== "object") {
+                //console.log("Metafield >>>", typeof meta)
+                //console.log("MEtafield Size >>", meta)
+                return meta;
+              }
+              
+            }).filter(value => value !== null) 
             .join(",") 
             .trim() 
-            .replace(/^,|,$/g, ''); 
+            .replace(/^,|,$/g, '').toString()
 
-            return {
+            const eans = variant.barcode
+
+            if (eans) {
+              return {
               category: categoryPathTranslation ? categoryPathTranslation.value : null,
               mpn: mpn,
               bed_size: variant.title + " cm",
@@ -151,7 +162,7 @@ export async function GET(req, res) {
                 ? titleTranslation.value + " Größe: " + variant.title + " cm"
                 : null,
               locale: "de-DE",
-              eans: variant.barcode,
+              eans: eans,
               description: bodyHtmlTranslation
                 ? removeHtml(bodyHtmlTranslation.value)
                 : null,
@@ -162,10 +173,18 @@ export async function GET(req, res) {
                 return acc
               }, {}),
             }
+            }
           })
         })
 
-        allProducts = [...allProducts, ...filteredProducts]
+        filteredProducts.map(product => {
+          //console.log("TYPEOF PRODUCT UNDEFINED >>>", typeof product)
+          if (product !== undefined) {
+            //console.log("TYPEOF PRODUCT >>>", typeof product)
+            //allFilteredProducts = [...product]
+            allProducts.push(product)
+          }
+        })
 
         // Sonraki sayfa var mı kontrol et
         hasNextPage = data.products.pageInfo.hasNextPage

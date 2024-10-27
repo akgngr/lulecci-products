@@ -129,8 +129,10 @@ export async function GET(req, res) {
                 return translateonethreeDays
               })
               .toString()
-
-            return {
+            const eans = variant.barcode;
+            
+            if (eans) {
+              return {
               sku: variant.sku,
               brand: product.vendor,
               title:
@@ -155,10 +157,18 @@ export async function GET(req, res) {
                 (imageEdge) => imageEdge.node.originalSrc
               ),
             }
+            }
           })
         })
 
-        allProducts = [...allProducts, ...filteredProducts]
+        filteredProducts.map(product => {
+          //console.log("TYPEOF PRODUCT UNDEFINED >>>", typeof product)
+          if (product !== undefined) {
+            //console.log("TYPEOF PRODUCT >>>", typeof product)
+            //allFilteredProducts = [...product]
+            allProducts.push(product)
+          }
+        })
 
         // Sonraki sayfa var mı kontrol et
         hasNextPage = data.products.pageInfo.hasNextPage
